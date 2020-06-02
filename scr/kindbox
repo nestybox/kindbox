@@ -136,6 +136,23 @@ function flannel_config() {
   fi
 }
 
+function docker_pull_image() {
+
+  # If the image is present, no action
+  output=$(sh -c "docker image inspect --format '{{.Id}}' ${IMAGE}" 2>&1)
+  if [[ $? -eq 0 ]]; then
+    return 0
+  fi
+
+  printf "  - Pulling node image ${IMAGE} ... (may take a few seconds)\n"
+
+  output=$(sh -c "docker pull ${IMAGE}" 2>&1)
+  if [[ $? -ne 0 ]]; then
+    ERR="docker pull ${IMAGE}: ${output}"
+    return 1
+  fi
+}
+
 function k8s_master_create() {
  local k8s_master=${CLUSTER_NAME}-master
   local output
@@ -381,6 +398,11 @@ function cluster_create_nodes() {
 
   printf "\e[92mCreating the K8s cluster nodes ... \e[0m\n"
 
+  docker_pull_image
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
   k8s_master_create
   if [[ $? -ne 0 ]]; then
     return 1
@@ -616,7 +638,11 @@ function resize_cluster() {
     IMAGE=$output
   fi
 
-  printf "  - Using image ${IMAGE}\n"
+  docker_pull_image
+  if [[ $? -ne 0 ]]; then
+    printf "ERROR: failed to pull node image: $ERR\n"
+    exit 1
+  fi
 
   start=$curr_workers
   num=$(( $NUM_WORKERS - $curr_workers ))
