@@ -748,6 +748,7 @@ function show_cmds() {
   printf "$FORMAT" "Initialize master node" "docker exec <master-node> sh -c \"kubeadm init --kubernetes-version=<version> --pod-network-cidr=10.244.0.0/16\""
   printf "$FORMAT" "Get join token from master" 'join_cmd=$(sh -c "docker exec <master-node> sh -c \"kubeadm token create --print-join-command 2> /dev/null\"" 2>&1)'
   printf "$FORMAT" "Initialize & join worker node" 'docker exec -d <worker-node> sh -c "$join_cmd"'
+  printf "$FORMAT" "Get kubectl the config" 'docker cp <master-node>:/etc/kubernetes/admin.conf $HOME/.kube/config'
   printf "$FORMAT" "Remove node from cluster" "docker stop -t0 <node-name>"
   printf "\n"
 
