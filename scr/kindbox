@@ -120,9 +120,33 @@ function wait_all_nodes_ready() {
 
 function kubectl_config() {
   local node=$1
-  docker exec ${node} sh -c "mkdir -p /root/.kube"
-  docker exec ${node} sh -c "cp -i /etc/kubernetes/admin.conf /root/.kube/config"
-  docker exec ${node} sh -c "chown $(id -u):$(id -g) /root/.kube/config"
+  docker exec ${node} sh -c "mkdir -p /root/.kube && \
+    cp -i /etc/kubernetes/admin.conf /root/.kube/config && \
+    chown $(id -u):$(id -g) /root/.kube/config"
+
+  # Copy k8s config to the host to allow kubectl interaction.
+  if [ ! -d ${HOME}/.kube ]; then
+    docker cp $node:/root/.kube/. ${HOME}/.kube
+    mv ${HOME}/.kube/config ${HOME}/.kube/${CLUSTER_NAME}-config
+  else
+    docker cp $node:/root/.kube/config ${HOME}/.kube/${CLUSTER_NAME}-config
+  fi
+
+  # As of today, kubeadm does not support 'multicluster' scenarios, so it generates
+  # identical/overlapping k8s configurations for every new cluster. Here we are
+  # simply adjusting the generated kubeconfig file to uniquely identify each cluster,
+  # thereby allowing us to support multi-cluster setups.
+  sed -i -e "s/^  name: kubernetes$/  name: ${CLUSTER_NAME}/" \
+    -e "s/^    cluster: kubernetes$/    cluster: ${CLUSTER_NAME}/" \
+    -e "s/^    user: kubernetes-admin$/    user: kubernetes-admin-${CLUSTER_NAME}/" \
+    -e "s/^  name: kubernetes-admin@kubernetes/  name: kubernetes-admin@${CLUSTER_NAME}/" \
+    -e "s/^current-context: kubernetes-admin@kubernetes/current-context: kubernetes-admin@${CLUSTER_NAME}/" \
+    -e "s/^- name: kubernetes-admin/- name: kubernetes-admin-${CLUSTER_NAME}/" \
+    -e "/^- name: kubernetes-admin/a\  username: kubernetes-admin" ${HOME}/.kube/${CLUSTER_NAME}-config
+  if [[ $? -ne 0 ]]; then
+    ERR="failed to edit kubeconfig file for cluster ${CLUSTER_NAME}"
+    return 1
+  fi
 }
 
 function flannel_config() {
@@ -516,9 +540,8 @@ function show_kubectl_usage() {
   printf "Use kubectl to control the cluster.\n"
   printf "\n"
   printf "  1) Install kubectl on your host\n"
-  printf "  2) mkdir -p $HOME/.kube\n"
-  printf "  3) docker cp ${k8s_master}:/etc/kubernetes/admin.conf $HOME/.kube/config\n"
-  printf "  4) kubectl get nodes\n"
+  printf "  2) export KUBECONFIG=${KUBECONFIG}:${HOME}/.kube/${CLUSTER_NAME}-config\n"
+  printf "  3) kubectl get nodes\n"
   printf "\n"
   printf "Alternatively, use \"docker exec\" to control the cluster:\n"
   printf "\n"
@@ -697,6 +720,10 @@ function destroy_cluster() {
       printf "ERROR: failed to remove network ${NET}: $output\n"
       exit 1
     fi
+  fi
+
+  if [ -f ${HOME}/.kube/${CLUSTER_NAME}-config ]; then
+    rm -rf ${HOME}/.kube/${CLUSTER_NAME}-config
   fi
 
   printf "Done.\n"
