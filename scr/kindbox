@@ -540,7 +540,7 @@ function show_kubectl_usage() {
   printf "Use kubectl to control the cluster.\n"
   printf "\n"
   printf "  1) Install kubectl on your host\n"
-  printf "  2) export KUBECONFIG=\${KUBECONFIG}:${HOME}/.kube/${CLUSTER_NAME}-config\n"
+  printf "  2) export KUBECONFIG=\${KUBECONFIG}:\${HOME}/.kube/${CLUSTER_NAME}-config\n"
   printf "  3) kubectl config use-context kubernetes-admin@${CLUSTER_NAME}\n"
   printf "  4) kubectl get nodes\n"
   printf "\n"
@@ -728,7 +728,7 @@ function destroy_cluster() {
   fi
 
   printf "\n\e[1mCluster destroyed. Remove stale entry from \$KUBECONFIG env-var by doing ...\e[0m\n\n"
-  printf "  export KUBECONFIG=\`echo \${KUBECONFIG} | sed \"s/:\\${HOME}\/.kube\/${CLUSTER_NAME}-config$//\"\`\n\n"
+  printf "  export KUBECONFIG=\`echo \${KUBECONFIG} | sed \"s|:\${HOME}/.kube/${CLUSTER_NAME}-config||\"\`\n\n"
 
   exit 0
 }
