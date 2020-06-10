@@ -727,7 +727,9 @@ function destroy_cluster() {
     rm -rf ${HOME}/.kube/${CLUSTER_NAME}-config
   fi
 
-  printf "Done.\n"
+  printf "\n\e[1mCluster destroyed. Remove stale entry from \$KUBECONFIG env-var by doing ...\e[0m\n\n"
+  printf "  export KUBECONFIG=\`echo \${KUBECONFIG} | sed \"s/:\\${HOME}\/.kube\/${CLUSTER_NAME}-config$//\"\`\n\n"
+
   exit 0
 }
 
