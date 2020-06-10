@@ -126,10 +126,10 @@ function kubectl_config() {
 
   # Copy k8s config to the host to allow kubectl interaction.
   if [ ! -d ${HOME}/.kube ]; then
-    docker cp $node:/root/.kube/. ${HOME}/.kube
+    docker cp ${node}:/root/.kube/. ${HOME}/.kube
     mv ${HOME}/.kube/config ${HOME}/.kube/${CLUSTER_NAME}-config
   else
-    docker cp $node:/root/.kube/config ${HOME}/.kube/${CLUSTER_NAME}-config
+    docker cp ${node}:/root/.kube/config ${HOME}/.kube/${CLUSTER_NAME}-config
   fi
 
   # As of today, kubeadm does not support 'multicluster' scenarios, so it generates
@@ -540,8 +540,9 @@ function show_kubectl_usage() {
   printf "Use kubectl to control the cluster.\n"
   printf "\n"
   printf "  1) Install kubectl on your host\n"
-  printf "  2) export KUBECONFIG=${KUBECONFIG}:${HOME}/.kube/${CLUSTER_NAME}-config\n"
-  printf "  3) kubectl get nodes\n"
+  printf "  2) export KUBECONFIG=\${KUBECONFIG}:${HOME}/.kube/${CLUSTER_NAME}-config\n"
+  printf "  3) kubectl config use-context kubernetes-admin@${CLUSTER_NAME}\n"
+  printf "  4) kubectl get nodes\n"
   printf "\n"
   printf "Alternatively, use \"docker exec\" to control the cluster:\n"
   printf "\n"
