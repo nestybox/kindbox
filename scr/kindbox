@@ -600,12 +600,12 @@ function resize_cluster() {
   local num_nodes=${#nodes_array[@]}
   local curr_workers
 
-  if [[ $num_nodes == 0 ]]; then
+  if [ $num_nodes -eq 0 ]; then
     printf "ERROR: no such cluster found.\n"
     exit 1
   fi
 
-  if [[ $num_nodes > 1 ]]; then
+  if [ $num_nodes -gt 1 ]; then
     curr_workers=$(( $num_nodes - 1 ))
   else
     curr_workers=0
@@ -613,7 +613,7 @@ function resize_cluster() {
 
   printf "\e[1mResizing the K8s cluster (current = ${curr_workers}, desired = ${NUM_WORKERS}) ... \e[0m\n"
 
-  if [[ $curr_workers == $NUM_WORKERS ]]; then
+  if [ $curr_workers -eq $NUM_WORKERS ]; then
     printf "Done (no action required).\n"
     exit 0
   fi
@@ -621,7 +621,7 @@ function resize_cluster() {
   #
   # Downsize
   #
-  if [[ $curr_workers > $NUM_WORKERS ]]; then
+  if [ $curr_workers -gt $NUM_WORKERS ]; then
 
     num=$(( $curr_workers - $NUM_WORKERS ))
     start=$(( $curr_workers - $num))
@@ -693,7 +693,7 @@ function destroy_cluster() {
   local nodes_array=($nodes)
   local num_nodes=${#nodes_array[@]}
 
-  if [[ $num_nodes > 1 ]]; then
+  if [ $num_nodes -ge 1 ]; then
     NUM_WORKERS=$(( $num_nodes - 1 ))
   else
     NUM_WORKERS=0
@@ -707,7 +707,7 @@ function destroy_cluster() {
   printf "\e[1mDestroying K8s cluster \"${CLUSTER_NAME}\" ...\e[0m\n"
 
   cluster_destroy_nodes
-  if [[ $? -ne 0 ]]; then
+  if [ $? -ne 0 ]; then
     printf "ERROR: failed to destroy cluster: $ERR\n"
     exit 1
   fi
