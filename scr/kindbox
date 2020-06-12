@@ -1065,7 +1065,7 @@ function show_usage() {
   printf "\n"
   printf "This program is meant as a reference example of how to deploy a K8s cluster\n"
   printf "inside Docker containers, using simple Docker commands + the Sysbox container runtime.\n"
-  printf "Feel free to use it and adapt it to your needs.\n".
+  printf "Feel free to use it and adapt it to your needs.\n"
   printf "\n"
   printf "This program has some of the same functionality as the K8s.io KinD tool, except\n"
   printf "that by virtue of using the Docker + Sysbox, the Docker images and commands\n"
@@ -1085,6 +1085,7 @@ function show_usage() {
   printf "  list        Lists the clusters.\n"
   printf "  showcmds    Displays useful Docker commands used by this program to manage the cluster.\n"
   printf "  version     Show version info.\n"
+  printf "  help        Show usage info.\n"
   printf "\n"
   printf "Run '$0 COMMAND --help' for for more info on that command.\n"
   exit 1
@@ -1122,8 +1123,12 @@ function args() {
       shift 2
       show_version
       ;;
-    *)
+    "help")
+      shift 2
       show_usage
+      ;;
+    *)
+      echo 'Invalid command. Type "kindbox help" for usage.'
       ;;
   esac
 }
