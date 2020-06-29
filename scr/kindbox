@@ -550,6 +550,27 @@ function show_kubectl_usage() {
   printf "\n"
 }
 
+# Parses docker config file to obtain explictly configured 'mtu' value. If not
+# found, returns docker's default value (1500 bytes).
+function docker_iface_mtu() {
+
+  local dockerCfgDir="/etc/docker"
+  local dockerCfgFile="${dockerCfgDir}/daemon.json"
+  local default_mtu=1500
+
+  if jq --exit-status 'has("mtu")' ${dockerCfgFile} >/dev/null; then
+    local mtu=$(jq --exit-status '."mtu"' ${dockerCfgFile} 2>&1)
+
+    if [ ! -z "$mtu" ] && [ "$mtu" -lt 1500 ]; then
+      echo $mtu
+    else
+      echo $default_mtu
+    fi
+  else
+    echo $default_mtu
+  fi
+}
+
 function create_cluster() {
   local result
 
@@ -570,7 +591,8 @@ function create_cluster() {
     printf "\n"
   fi
 
-  output=$(sh -c "docker network create ${NET}" 2>&1)
+  local iface_mtu=$(docker_iface_mtu)
+  output=$(sh -c "docker network create -o \"com.docker.network.driver.mtu\"=\"${iface_mtu}\" ${NET}" 2>&1)
 
   cluster_create_nodes
   if [[ $? -ne 0 ]]; then
