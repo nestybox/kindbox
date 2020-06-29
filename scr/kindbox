@@ -63,7 +63,7 @@ function retry() {
 
 function wait_for_inner_systemd {
   local node=$1
-  retry 5 1 sh -c "docker exec ${node} sh -c 'systemctl is-system-running --wait 2>&1 | grep -q running'"
+  retry 10 1 sh -c "docker exec ${node} sh -c 'systemctl is-system-running --wait 2>&1 | grep -q running'"
 }
 
 function k8s_node_ready() {
