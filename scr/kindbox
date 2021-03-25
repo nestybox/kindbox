@@ -304,7 +304,7 @@ function k8s_workers_create() {
 
     output=$(sh -c "docker run --runtime=sysbox-runc -d --rm --network=$NET --name=${node} --hostname=${node} $IMAGE" 2>&1)
     if [[ $? -ne 0 ]]; then
-      k8s_nodes_destroy $start $(($i + 1))
+      k8s_workers_destroy $start $(($i + 1))
       ERR="failed to deploy node $node: $output"
       return 1
     fi
@@ -558,7 +558,7 @@ function docker_iface_mtu() {
   local dockerCfgFile="${dockerCfgDir}/daemon.json"
   local default_mtu=1500
 
-  if jq --exit-status 'has("mtu")' ${dockerCfgFile} >/dev/null; then
+  if jq --exit-status 'has("mtu")' ${dockerCfgFile} >/dev/null 2>&1; then
     local mtu=$(jq --exit-status '."mtu"' ${dockerCfgFile} 2>&1)
 
     if [ ! -z "$mtu" ] && [ "$mtu" -lt 1500 ]; then
