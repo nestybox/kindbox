@@ -647,6 +647,14 @@ function docker_iface_mtu() {
   local dockerCfgFile="${dockerCfgDir}/daemon.json"
   local default_mtu=1500
 
+  # Parsing the Docker config file requires root privilege; if we don't have it,
+  # skip.
+  user=$(whoami)
+  if [[ "$user" != "root" ]]; then
+	  echo $default_mtu
+	  return
+  fi
+
   if jq --exit-status 'has("mtu")' ${dockerCfgFile} >/dev/null; then
     local mtu=$(jq --exit-status '."mtu"' ${dockerCfgFile} 2>&1)
 
@@ -858,7 +866,7 @@ function list_clusters() {
   done
 
   if [[ $LONG_LIST == 1 ]]; then
-    local FORMAT="%-22s %-15s %-20s %-30s %-8s\n"
+    local FORMAT="%-22s %-15s %-20s %-40s %-8s\n"
     printf "$FORMAT" "NAME" "WORKERS" "NET" "IMAGE" "K8S VERSION"
 
     for cl in ${clusters[@]}; do
@@ -1206,8 +1214,8 @@ function show_usage() {
   printf "\n"
   printf "Moreover, the resulting K8s cluster boots up pretty quickly (< 2 minutes for a\n"
   printf "10-node cluster), uses minimal resources (only 1 GB overhead for a 10-node\n"
-  printf "cluster!), and does **not** use privileged containers (i.e., it's much more\n"
-  printf "secure).\n"
+  printf "cluster with Sysbox Enterprise!), and does **not** use privileged containers\n"
+  printf "(i.e., it's much more secure).\n"
   printf "\n"
   printf "Commands:\n"
   printf "  create      Creates a cluster.\n"
