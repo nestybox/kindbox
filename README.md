@@ -45,7 +45,7 @@ that make up the cluster.
 It's a simple image that includes systemd, Docker, the K8s `kubeadm` tool, and
 preloaded inner pod images for the K8s control plane.
 
-The Dockerfile is [here](https://github.com/nestybox/sysbox-external/tree/master/dockerfiles/k8s-node).
+The Dockerfile is [here](https://github.com/nestybox/dockerfiles/tree/master/k8s-node)
 
 Feel free to copy it and customize it per your needs.
 
